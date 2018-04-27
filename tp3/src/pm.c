@@ -26,7 +26,7 @@ void pm_download_page (unsigned int page_number, unsigned int frame_number)
 {
   download_count++;
   /* ¡ TODO: COMPLÉTER ! */
-  //on place le curseur au bon endroit et on lit. J'assumes ici que les frames
+  //on place le curseur au bon endroit et on lit. J'assume ici que les frames
   //sont numérotées de 0 à 31
   fseek(pm_backing_store, page_number*256, SEEK_SET);
   fread(pm_memory+(frame_number*256), 256, 1, pm_backing_store);
@@ -37,7 +37,7 @@ void pm_backup_page (unsigned int frame_number, unsigned int page_number)
 {
   backup_count++;
   /* ¡ TODO: COMPLÉTER ! */
-  //on place le curseur au bon endroit et on écrit. J'assumes ici que les frames
+  //on place le curseur au bon endroit et on écrit. J'assume ici que les frames
   //sont numérotées de 0 à 31
   fseek(pm_backing_store, page_number*256, SEEK_SET);
   fwrite(pm_memory+(frame_number*256), 256, 1, pm_backing_store);

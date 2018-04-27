@@ -51,6 +51,10 @@ static void tlb__add_entry (unsigned int page_number,
                             unsigned int frame_number, bool readonly)
 {
   // TODO: COMPLÉTER CETTE FONCTION.
+  //Cette partie dépend de l'algo de remplacement choisi; si FIFO, on peut créer
+  //un genre de stack gardant la trace des entrées modifiées et éliminer la plus
+  //vielle, si CLOCK, essentiellement le même principe que FIFO mais avec le 
+  //bit indiquant si la page a été référencée récemment.
 }
 
 /******************** ¡ NE RIEN CHANGER CI-DESSOUS !  ******************/
