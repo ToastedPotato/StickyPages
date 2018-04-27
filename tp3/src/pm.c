@@ -48,7 +48,7 @@ char pm_read (unsigned int physical_address)
   read_count++;
   /* ¡ TODO: COMPLÉTER ! */
   if (physical_address < PHYSICAL_MEMORY_SIZE) {
-    return pm_memory[physical_address]
+    return pm_memory[physical_address];
   }
   return '!';
 }

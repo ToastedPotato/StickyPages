@@ -87,7 +87,7 @@ char vmm_read (unsigned int laddress)
   fprintf(stdout, "phys address : %d, char : %c\n", physical_address, c);
   
   // TODO: Fournir les arguments manquants.
-  vmm_log_command (stdout, "READING", laddress, page_number, frame_number, offset, paddress, c);
+  vmm_log_command (stdout, "READING", laddress, page_number, frame_number, offset, physical_address, c);
   return c;
 }
 
