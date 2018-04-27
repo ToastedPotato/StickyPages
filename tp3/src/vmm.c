@@ -15,6 +15,11 @@ static unsigned int read_count = 0;
 static unsigned int write_count = 0;
 static FILE* vmm_log;
 
+// Helper functions
+unsigned int compute_page_number(unsigned int laddress);
+unsigned int compute_offset(unsigned int laddress);
+unsigned int compute_paddress(unsigned int frame_number, unsigned int offset);
+
 void vmm_init (FILE *log)
 {
   // Initialise le fichier de journal.
@@ -44,10 +49,10 @@ char vmm_read (unsigned int laddress)
   /* ¡ TODO: COMPLÉTER ! */
 
   // Translate logical adress to page number
-  // TODO : 
-  fprintf(stdout, "%d", laddress);
-  unsigned int page_number = 0;
-  
+  unsigned int page_number = compute_page_number(laddress);
+  unsigned int offset = compute_offset(laddress);
+  fprintf(stdout, "page : %d, offset : %d\n", page_number, offset);
+
   // Lookup TLB
   int frame_number = tlb_lookup (page_number, false);
   
@@ -74,7 +79,7 @@ char vmm_read (unsigned int laddress)
   }
   
   // TODO : translate logical to physical adress
-  unsigned int physical_address = 0;
+  unsigned int physical_address = compute_paddress(frame_number, offset);
   
   // Read from physical memory
   c = pm_read(physical_address);
@@ -94,6 +99,17 @@ void vmm_write (unsigned int laddress, char c)
   vmm_log_command (stdout, "WRITING", laddress, 0, 0, 0, 0, c);
 }
 
+unsigned int compute_page_number(unsigned int laddress) {
+	return laddress / PAGE_FRAME_SIZE;
+}
+
+unsigned int compute_offset(unsigned int laddress) {
+	return laddress % PAGE_FRAME_SIZE;
+}
+
+unsigned int compute_paddress(unsigned int frame_number, unsigned int offset) {
+	return frame_number * PAGE_FRAME_SIZE + offset;
+}
 
 // NE PAS MODIFIER CETTE FONCTION
 void vmm_clean (void)
