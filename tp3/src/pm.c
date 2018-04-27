@@ -56,10 +56,10 @@ char pm_read (unsigned int physical_address)
 void pm_write (unsigned int physical_address, char c)
 {
   write_count++;
+  /* ¡ TODO: COMPLÉTER ! */
   if (physical_address < PHYSICAL_MEMORY_SIZE) {
     pm_memory[physical_address] = c;
   }
-  /* ¡ TODO: COMPLÉTER ! */
 }
 
 
