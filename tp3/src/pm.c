@@ -47,12 +47,18 @@ char pm_read (unsigned int physical_address)
 {
   read_count++;
   /* ¡ TODO: COMPLÉTER ! */
+  if (physical_address < PHYSICAL_MEMORY_SIZE) {
+    return pm_memory[physical_address]
+  }
   return '!';
 }
 
 void pm_write (unsigned int physical_address, char c)
 {
   write_count++;
+  if (physical_address < PHYSICAL_MEMORY_SIZE) {
+    pm_memory[physical_address] = c;
+  }
   /* ¡ TODO: COMPLÉTER ! */
 }
 

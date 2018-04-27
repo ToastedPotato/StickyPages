@@ -70,12 +70,12 @@ char vmm_read (unsigned int laddress)
 	  // Check if frame needs to be written
 	  // if yes, backup to disk
 	  
-	  //pm_download_page (page_number, frame_number);
-	  //pt_set_entry (page_number, frame_number);
+	  pm_download_page (page_number, frame_number);
+	  pt_set_entry (page_number, frame_number);
 	}
 	
 	// Add to TLB - read only or not??
-	tlb_add_entry (page_number, frame_number, true);
+	tlb_add_entry (page_number, frame_number, pt_readonly_p(page_number));
   }
   
   // TODO : translate logical to physical adress
@@ -84,8 +84,10 @@ char vmm_read (unsigned int laddress)
   // Read from physical memory
   c = pm_read(physical_address);
   
+  fprintf(stdout, "phys address : %d, char : %c\n", physical_address, c);
+  
   // TODO: Fournir les arguments manquants.
-  vmm_log_command (stdout, "READING", laddress, 0, 0, 0, 0, c);
+  vmm_log_command (stdout, "READING", laddress, page_number, frame_number, offset, paddress, c);
   return c;
 }
 
