@@ -35,6 +35,13 @@ void tlb_init (FILE *log)
 static int tlb__lookup (unsigned int page_number, bool write)
 {
   // TODO: COMPLÉTER CETTE FONCTION.
+  //pour l'instant une boucle bête qui lit le tlb en entier jusqu'à tomber sur
+  //l'entrée voulue 
+  for(int i = 0; i < TLB_NUM_ENTRIES; i++){
+    if(tlb_entries[i].page_number == page_number){
+      return tlb_entries[i].frame_number;
+    }
+  }
   return -1;
 }
 
