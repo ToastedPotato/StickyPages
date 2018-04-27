@@ -44,17 +44,40 @@ char vmm_read (unsigned int laddress)
   /* ¡ TODO: COMPLÉTER ! */
 
   // Translate logical adress to page number
+  // TODO : 
+  fprintf(stdout, "%d", laddress);
+  unsigned int page_number = 0;
   
   // Lookup TLB
+  int frame_number = tlb_lookup (page_number, false);
   
   // if TLB hit, read from central memory
+  if(frame_number < 0) {
+	// if TLB miss, lookup page table
+	frame_number = pt_lookup (page_number);
+	
+	if(frame_number < 0) {
+	  // page fault
+	  // read page from backing store
+	  
+	  // TODO : pick the frame to swap out?
+	  frame number = 0;
+	  // Check if frame needs to be written
+	  // if yes, backup to disk
+	  
+	  pm_download_page (page_number, frame_number);
+	  pt_set_entry (page_number, frame_number);;
+	}
+	
+	// Add to TLB - read only or not??
+	tlb_add_entry (page_number, frame_number, true);
+  }
   
-  // if TLB miss, lookup page table
+  // TODO : translate logical to physical adress
+  unsigned int physical_address = 0;
   
-  // if page found, read from central memory
-  
-  // else, page fault
-  // read page from backing store
+  // Read from physical memory
+  c = pm_read(physical_address);
   
   // TODO: Fournir les arguments manquants.
   vmm_log_command (stdout, "READING", laddress, 0, 0, 0, 0, c);
