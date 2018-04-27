@@ -112,7 +112,7 @@ int lookup_frame_number(unsigned int page_number, bool write) {
 	  // download page from backing store
 	  pm_download_page (page_number, frame_number);
 	  pt_set_entry (page_number, frame_number);
-	  pt_set_readonly (page_number, !write)
+	  pt_set_readonly (page_number, !write);
 	}
 	
 	// Add to TLB - read only or not??
