@@ -61,12 +61,12 @@ char vmm_read (unsigned int laddress)
 	  // read page from backing store
 	  
 	  // TODO : pick the frame to swap out?
-	  frame number = 0;
+	  frame_number = 0;
 	  // Check if frame needs to be written
 	  // if yes, backup to disk
 	  
-	  pm_download_page (page_number, frame_number);
-	  pt_set_entry (page_number, frame_number);;
+	  //pm_download_page (page_number, frame_number);
+	  //pt_set_entry (page_number, frame_number);
 	}
 	
 	// Add to TLB - read only or not??
