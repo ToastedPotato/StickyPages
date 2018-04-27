@@ -63,13 +63,13 @@ char vmm_read (unsigned int laddress)
 	
 	if(frame_number < 0) {
 	  // page fault
-	  // read page from backing store
 	  
 	  // TODO : pick the frame to swap out?
 	  frame_number = 0;
 	  // Check if frame needs to be written
 	  // if yes, backup to disk
 	  
+	  // download page from backing store
 	  pm_download_page (page_number, frame_number);
 	  pt_set_entry (page_number, frame_number);
 	}
@@ -83,7 +83,6 @@ char vmm_read (unsigned int laddress)
   
   // Read from physical memory
   c = pm_read(physical_address);
-  
   fprintf(stdout, "phys address : %d, char : %c\n", physical_address, c);
   
   // TODO: Fournir les arguments manquants.

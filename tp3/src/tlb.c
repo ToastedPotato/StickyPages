@@ -55,6 +55,14 @@ static void tlb__add_entry (unsigned int page_number,
   //un genre de stack gardant la trace des entrées modifiées et éliminer la plus
   //vielle, si CLOCK, essentiellement le même principe que FIFO mais avec le 
   //bit indiquant si la page a été référencée récemment.
+  
+  //Version naive temporaire
+  // TODO : Pick an entry
+  unsigned int i = 0;
+  
+  tlb_entries[i].frame_number = frame_number;
+  tlb_entries[i].page_number = page_number;
+  tlb_entries[i].readonly = readonly;
 }
 
 /******************** ¡ NE RIEN CHANGER CI-DESSOUS !  ******************/

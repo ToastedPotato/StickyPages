@@ -36,7 +36,7 @@ static int pt__lookup (unsigned int page_number)
 {
   // TODO: COMPLÉTER CETTE FONCTION.
   if(page_table[page_number].valid){
-    return page_table[page_number-1].frame_number;
+    return page_table[page_number].frame_number;
   }else{  
     return -1;
   }
