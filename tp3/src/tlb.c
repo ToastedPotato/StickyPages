@@ -11,7 +11,11 @@ struct tlb_entry
   unsigned int page_number;
   int frame_number;             /* Invalide si négatif.  */
   bool readonly : 1;
+  bool referenced : 1;
 };
+
+//utilisé pour clock
+unsigned int hand = 0;
 
 static FILE *tlb_log = NULL;
 static struct tlb_entry tlb_entries[TLB_NUM_ENTRIES]; 
@@ -36,15 +40,32 @@ static int tlb__lookup (unsigned int page_number, bool write)
 {
   // TODO: COMPLÉTER CETTE FONCTION.
   //pour l'instant une boucle bête qui lit le tlb en entier jusqu'à tomber sur
-  //l'entrée voulue 
-  for(int i = 0; i < TLB_NUM_ENTRIES; i++){
+  //l'entrée voulue
+  bool end_Queue = false;
+  
+  int i = hand;
+   
+  while(!end_Queue){
     if(tlb_entries[i].page_number == page_number){
 	  if(write) {
 		  tlb_entries[i].readonly = false;
 	  }
+	  hand = i;
+	  tlb_entries[i].referenced = true;
       return tlb_entries[i].frame_number;
     }
+    
+    i++;
+    
+    //une fois qu'on arrive à la fin de la queue
+    if(i == TLB_NUM_ENTRIES){
+        i = 0;
+    }
+    
+    //Revenu au point de départ, donc atteint la fin de la queue
+    if(i == hand){end_Queue = true;}
   }
+  
   return -1;
 }
 
@@ -54,18 +75,46 @@ static void tlb__add_entry (unsigned int page_number,
                             unsigned int frame_number, bool readonly)
 {
   // TODO: COMPLÉTER CETTE FONCTION.
-  //Cette partie dépend de l'algo de remplacement choisi; si FIFO, on peut créer
-  //un genre de stack gardant la trace des entrées modifiées et éliminer la plus
-  //vielle, si CLOCK, essentiellement le même principe que FIFO mais avec le 
-  //bit indiquant si la page a été référencée récemment.
   
-  //Version naive temporaire
-  // TODO : Pick an entry
-  unsigned int i = 0;
+  //CLOCK!!
+  bool end_Queue = false;
   
-  tlb_entries[i].frame_number = frame_number;
-  tlb_entries[i].page_number = page_number;
-  tlb_entries[i].readonly = readonly;
+  int i = hand;
+  
+  while(!end_Queue){
+    
+    if(tlb_entries[i].frame_number < 0){
+	  //si entrée vide
+	  
+	  hand = i;
+	  tlb_entries[i].frame_number = frame_number;
+      tlb_entries[i].page_number = page_number;
+      tlb_entries[i].readonly = readonly;
+      return;
+    }else {
+        if(!tlb_entries[i].referenced){
+           //si l'entrée n'a pas été référence, swap!
+           
+           hand = i;
+	       tlb_entries[i].frame_number = frame_number;
+           tlb_entries[i].page_number = page_number;
+           tlb_entries[i].readonly = readonly;
+           return; 
+        }else{
+           //sinon, en change le bit de référence
+           tlb_entries[i].referenced = false; 
+        }        
+    }
+        
+    i++;
+    
+    //une fois qu'on arrive à la fin de la queue
+    if(i == TLB_NUM_ENTRIES){
+        i = 0;
+    }
+    
+  }
+      
 }
 
 /******************** ¡ NE RIEN CHANGER CI-DESSOUS !  ******************/

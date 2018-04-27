@@ -54,7 +54,7 @@ char vmm_read (unsigned int laddress)
   unsigned int offset = compute_offset(laddress);
   fprintf(stdout, "page : %d, offset : %d\n", page_number, offset);
 
-  int frame_number = lookup_frame_number(page_number, true);
+  int frame_number = lookup_frame_number(page_number, false);
   
   // TODO : translate logical to physical adress
   unsigned int physical_address = compute_paddress(frame_number, offset);
