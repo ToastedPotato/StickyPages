@@ -43,6 +43,19 @@ char vmm_read (unsigned int laddress)
   read_count++;
   /* ¡ TODO: COMPLÉTER ! */
 
+  // Translate logical adress to page number
+  
+  // Lookup TLB
+  
+  // if TLB hit, read from central memory
+  
+  // if TLB miss, lookup page table
+  
+  // if page found, read from central memory
+  
+  // else, page fault
+  // read page from backing store
+  
   // TODO: Fournir les arguments manquants.
   vmm_log_command (stdout, "READING", laddress, 0, 0, 0, 0, c);
   return c;
