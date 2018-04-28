@@ -3,14 +3,60 @@
 \usepackage[utf8]{inputenc}
 
 \title{Travail pratique \#3 - IFT-2245}
-\author{L'autre et Moi}
+\author{Christophe Apollon-Roy (920403) \\et \\Amélie Lacombe Robillard (20016735)}
 
 \begin{document}
 
 \maketitle
 
 \section{Introduction}
+\setlength{\parindent}{20pt}
+Pour ce travail pratique, nous avons dû simuler la gestion de la mémoire avec une table de pages, un \emph{Translation lookaside buffer} 
+-que nous nommerons dorénavant TLB pour le reste de ce rapport-, une mémoire physique et une unité de gestion de mémoire virtuelle. Pour réaliser 
+cela, nous avons, toujours à partir du code fourni, implémenter les fonctions de base du TLB (la recherche et l'ajout d'entrées), de la page de 
+tables (la recherche et l'ajout d'entrées ainsi que le marquage des pages valides ou \emph{dirty}) et de la mémoire physique (le chargement et la 
+sauvegarde de pages sur le disque dur -émulé ici par un fichier contenant des caractères imprimables ASCII- ainsi que la lecture et écriture dans 
+les \emph{frames} de la mémoire physique), l'algorithme de remplacement utilisé par l'unité de gestion de mémoire virtuelle ainsi que divers 
+tests visant à évaluer la performance de ces fonctionalités. La lecture et l'analyse des requêtes envoyées à l'unité de gestion de mémoire 
+virtuelle étant déjà traitées par les utilitaires fournis avec le code de base, le coeur du travail fut l'implémentation de l'algorithme de 
+remplacement de pages ainsi que l'élaboration des tests.\\
+\\
+Le rapport qui suit verra plus particulièrement les deux tâches mentionnées plus haut en examinant différents algorithmes de remplacement de 
+pages et en expliquant la démarche derrière l'élaboration des tests utilisés.\\
+\\
+\section{Algorithme de remplacement des pages}
+\setlength{\parindent}{20pt}
+Il existe plusieurs stratégies pour gérer le remplacement de pages, certaines pouvant permettre une gestion presque optimale des 
+\emph{page faults} et ainsi réduire leur fréquence à un minimum. Étant donné le cadre du travail (nous sommes obligés d'utiliser la pagination 
+sur demande), nos habilités et la complexité de certains algorithmes, nous avons décidé de choisir parmis les algorithmes suivants pour gérer les 
+\emph{TLB-miss} et les \emph{page faults}:\\
+\begin{description}
+    \item [OPT] Optimal, permet de réduire au minimum les \emph{page faults} en remplaçant la page dont la prochaine référence se produira le 
+    plus loin dans la queue de requêtes
+    \item [FIFO] \emph{First In First Out}, remplace le contenu de la page la plus vielle
+    \item [CLOCK] Similaire à FIFO, mais, ne remplace une page que si le bit la marquant comme étant "référencée" est à 0. Si ce bit de référence 
+    est à 1, il sera mis à 0 et l'algorithme passera à la prochaine victime potentielle
+    \item [LRU] \emph{Least Recently Used}, remplace la page dont la dernière référence est la plus ancienne
+    \item [Random] Comme le nom le dit, choisir aléatoirement une page à remplacer. Cette victime peut être le choix optimal comme elle pourrait 
+    être le pire choix possible (par exemple, une page qui sera référencée très peu de temps après son remplacement), impossible de savoir.
+\end{description}
 
-Pour prouver que $P \not= NP$, il suffit de ...
+Dans le meilleur des mondes, OPT serait le meilleur choix, mais, malheureusement, son implémentation demanderait qu'on connaisse toutes les 
+requêtes de mémoire futures, ce qui est impossible (avec les technologies présentement disponibles). En revanche, FIFO et Random peuvent être 
+implémentés très facilement, mais leur performance laisse souvent à désirer. LRU peut s'approcher de OPT du point de vue de la performance, mais 
+le coût en ressources est plutôt élevé; en effet, il est souvent nécessaire d'utiliser des structures de données dispendieuses telles les listes 
+chainées afin de garder la trace des références à chaque page. Pour sa part, CLOCK se situe entre FIFO et LRU au niveau de la performance (peut 
+s'approcher de LRU dépendant de la situation) et requièrt un coût minimal en ressources; les variantes les plus minimalistes ne demande qu'un bit 
+de plus pour chaque entrée de la table des page et un pointeur pour référencer la page sur laquelle se situe l'aiguille de "l'horloge".\\
+\\
+En évaluant le rapport performance/coût de chaque algorithme, nous avons donc décidé d'implémenter CLOCK car il était beaucoup plus abordable que 
+LRU; en effet, pour notre implémentation, nous n'avions besoin que d'ajouter un bit de références aux entrées de la table de pages et du TLB et 
+de garder en mémoire sur la pile un entier faisant référence à l'entrée où est rendue la boucle cherchant une victime à remplacer dans le TLB et 
+la table des pages.\\ 
+\section{Élaboration des tests}
+\setlength{\parindent}{20pt}
+
+\section{Conclusion}
+\setlength{\parindent}{20pt}
 
 \end{document}
