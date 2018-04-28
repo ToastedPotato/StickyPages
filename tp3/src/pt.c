@@ -10,11 +10,14 @@ struct page
 {
   bool readonly : 1;
   bool valid : 1;
+  bool referenced : 1;
   unsigned int frame_number : 16;
 };
 
 static FILE *pt_log = NULL;
 static struct page page_table[NUM_PAGES];
+
+
 
 static unsigned int pt_lookup_count = 0;
 static unsigned int pt_page_fault_count = 0;
@@ -35,7 +38,8 @@ void pt_init (FILE *log)
 static int pt__lookup (unsigned int page_number)
 {
   // TODO: COMPLÉTER CETTE FONCTION.
-  if(page_table[page_number].valid){
+  if(page_table[page_number].valid == true){
+    page_table[page_number].referenced = true;
     return page_table[page_number].frame_number;
   }else{  
     return -1;
@@ -50,6 +54,7 @@ static void pt__set_entry (unsigned int page_number, unsigned int frame_number)
   page_table[page_number].frame_number = frame_number;
   page_table[page_number].valid = true;
   page_table[page_number].readonly = true;
+  page_table[page_number].referenced = true;
 }
 
 /* Marque l'entrée de `page_number` dans la page table comme invalide.  */
@@ -57,6 +62,19 @@ void pt_unset_entry (unsigned int page_number)
 {
   // TODO: COMPLÉTER CETTE FONCTION.
   page_table[page_number].valid = false;
+}
+
+void pt_unset_ref (unsigned int page_number)
+{
+  page_table[page_number].referenced = false;
+}
+
+bool pt_isValid (unsigned int page_number){
+    return page_table[page_number].valid;
+}
+
+bool pt_isReferenced (unsigned int page_number){
+    return page_table[page_number].referenced;
 }
 
 /* Renvoie si `page_number` est `readonly`.  */

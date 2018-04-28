@@ -15,6 +15,10 @@ static unsigned int read_count = 0;
 static unsigned int write_count = 0;
 static FILE* vmm_log;
 
+//Needed for implementing the clock policy
+unsigned int pt_hand = 0;
+unsigned int filled_frames = 0;
+
 // Helper functions
 int lookup_frame_number(unsigned int page_number, bool write);
 unsigned int compute_page_number(unsigned int laddress);
@@ -56,6 +60,8 @@ char vmm_read (unsigned int laddress)
 
   int frame_number = lookup_frame_number(page_number, false);
   
+  pt_hand = page_number;
+  
   // TODO : translate logical to physical adress
   unsigned int physical_address = compute_paddress(frame_number, offset);
   
@@ -79,6 +85,8 @@ void vmm_write (unsigned int laddress, char c)
   unsigned int offset = compute_offset(laddress);
   fprintf(stdout, "page : %d, offset : %d\n", page_number, offset);
 
+  pt_hand = page_number;
+  
   int frame_number = lookup_frame_number(page_number, true);
   
   // Translate logical to physical adress
@@ -104,15 +112,57 @@ int lookup_frame_number(unsigned int page_number, bool write) {
 	if(frame_number < 0) {
 	  // page fault
 	  
-	  // TODO : pick the frame to swap out?
-	  frame_number = 0;
+	  // TODO : pick the frame to swap out? Time for CLOCK!
+	  int i = pt_hand;
+	  
+	  bool page_found = false;
+	  	  
+	  while(!page_found){
+	    
+	    if(!pt_isValid(i)){
+	        //page invalide, on peut swap in
+	        page_found = true;
+        }else{
+            if(!pt_isReferenced(i)){
+                //page non référencée, on peut swap
+                page_found = true;
+            }else{
+                pt_unset_ref(i);
+            }
+        
+	    }
+	    	    
+	    if(!page_found){i++;}
+        
+        //une fois qu'on arrive à la fin de la queue
+        if(i == NUM_PAGES){
+            i = 0;
+        }
+	  
+	  }
+	  
+	  //Setting the hand to its new position
+	  pt_hand = i;
+	  
+	  //If there are free frames remaining
+	  if(filled_frames < NUM_FRAMES){
+	    frame_number = filled_frames;
+	    filled_frames++;
+	  }else{frame_number = pt_lookup(pt_hand);}
+	  
 	  // Check if frame needs to be written
-	  // if yes, backup to disk
+	  if(!pt_readonly_p(pt_hand) && pt_isValid(pt_hand)){
+	    // if yes, backup to disk
+	    pm_backup_page (frame_number, pt_hand);  
+      }
 	  
 	  // download page from backing store
-	  pm_download_page (page_number, frame_number);
-	  pt_set_entry (page_number, frame_number);
-	  pt_set_readonly (page_number, !write);
+	  pm_download_page (pt_hand, frame_number);
+	  pt_set_entry (pt_hand, frame_number);
+	  pt_set_readonly (pt_hand, !write);
+	  
+	  //add the new entry to TLB
+	  tlb_add_entry (pt_hand, frame_number, pt_readonly_p(pt_hand));
 	}
 	
 	// Add to TLB - read only or not??

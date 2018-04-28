@@ -16,6 +16,7 @@ struct tlb_entry
 
 //utilisé pour clock
 unsigned int hand = 0;
+unsigned int filled_tlb_entries = 0;
 
 static FILE *tlb_log = NULL;
 static struct tlb_entry tlb_entries[TLB_NUM_ENTRIES]; 
@@ -44,6 +45,8 @@ static int tlb__lookup (unsigned int page_number, bool write)
   bool end_Queue = false;
   
   int i = hand;
+  
+  int visited = 0;
    
   while(!end_Queue){
     if(tlb_entries[i].page_number == page_number){
@@ -56,16 +59,18 @@ static int tlb__lookup (unsigned int page_number, bool write)
     }
     
     i++;
+    visited++;
     
     //une fois qu'on arrive à la fin de la queue
     if(i == TLB_NUM_ENTRIES){
         i = 0;
     }
     
-    //Revenu au point de départ, donc atteint la fin de la queue
-    if(i == hand){end_Queue = true;}
+    //On a visité toutes les entrées dans le TLB
+    if(visited == TLB_NUM_ENTRIES){end_Queue = true;}
+    
   }
-  
+  //fprintf(stdout, "visited: %i\n", visited);
   return -1;
 }
 
@@ -75,6 +80,14 @@ static void tlb__add_entry (unsigned int page_number,
                             unsigned int frame_number, bool readonly)
 {
   // TODO: COMPLÉTER CETTE FONCTION.
+  //Si entrées vides
+  if(filled_tlb_entries < TLB_NUM_ENTRIES){
+	  tlb_entries[filled_tlb_entries].frame_number = frame_number;
+      tlb_entries[filled_tlb_entries].page_number = page_number;
+      tlb_entries[filled_tlb_entries].readonly = readonly;
+      filled_tlb_entries++;
+      return;
+  }
   
   //CLOCK!!
   bool end_Queue = false;
