@@ -111,58 +111,55 @@ int lookup_frame_number(unsigned int page_number, bool write) {
 	
 	if(frame_number < 0) {
 	  // page fault
-	  
-	  // TODO : pick the frame to swap out? Time for CLOCK!
-	  int i = pt_hand;
-	  
-	  bool page_found = false;
 	  	  
-	  while(!page_found){
-	    
-	    if(!pt_isValid(i)){
-	        //page invalide, on peut swap in
-	        page_found = true;
-        }else{
-            if(!pt_isReferenced(i)){
-                //page non référencée, on peut swap
-                page_found = true;
-            }else{
-                pt_unset_ref(i);
-            }
-        
-	    }
-	    	    
-	    if(!page_found){i++;}
-        
-        //une fois qu'on arrive à la fin de la queue
-        if(i == NUM_PAGES){
-            i = 0;
-        }
-	  
-	  }
-	  
-	  //Setting the hand to its new position
-	  pt_hand = i;
-	  
 	  //If there are free frames remaining
 	  if(filled_frames < NUM_FRAMES){
 	    frame_number = filled_frames;
 	    filled_frames++;
-	  }else{frame_number = pt_lookup(pt_hand);}
+	  }else{
+	  
+	  //Time to find a victim page with CLOCK!
+	  bool page_found = false;
+	  	  
+	  while(!page_found){
+	    
+	    if(pt_isValid(pt_hand)){
+            if(!pt_isReferenced(pt_hand)){
+                //page non référencée, on peut swap out
+                page_found = true;
+            }else{
+                pt_unset_ref(pt_hand);
+            }
+        
+	    }
+	    	    
+	    if(!page_found){pt_hand++;}
+        
+        //une fois qu'on arrive à la fin de la queue
+        if(pt_hand == NUM_PAGES){
+            pt_hand = 0;
+        }
+	  
+	  }
+	  
+	  frame_number = pt_lookup(pt_hand);
+	  
+	  }
 	  
 	  // Check if frame needs to be written
 	  if(!pt_readonly_p(pt_hand) && pt_isValid(pt_hand)){
 	    // if yes, backup to disk
-	    pm_backup_page (frame_number, pt_hand);  
+	    pm_backup_page (frame_number, pt_hand);
+	    pt_unset_entry (pt_hand);  
       }
 	  
 	  // download page from backing store
-	  pm_download_page (pt_hand, frame_number);
-	  pt_set_entry (pt_hand, frame_number);
-	  pt_set_readonly (pt_hand, !write);
+	  pm_download_page (page_number, frame_number);
+	  pt_set_entry (page_number, frame_number);
+	  pt_set_readonly (page_number, !write);
 	  
-	  //add the new entry to TLB
-	  tlb_add_entry (pt_hand, frame_number, pt_readonly_p(pt_hand));
+	  //setting the hand's new position
+	  pt_hand = page_number;
 	}
 	
 	// Add to TLB - read only or not??
