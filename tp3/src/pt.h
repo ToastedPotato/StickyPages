@@ -18,6 +18,8 @@ void pt_set_entry (unsigned int page_number, unsigned int frame_number);
 /* Marque l'entrée de `page_number` dans la page table comme invalide.  */
 void pt_unset_entry (unsigned int page_number);
 
+unsigned int pt_get_frame (unsigned int page_number);
+
 /* Mets à 0 le bit de référence de la page*/
 void pt_unset_ref (unsigned int page_number);
 

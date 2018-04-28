@@ -78,11 +78,12 @@ static void tlb__add_entry (unsigned int page_number,
                             unsigned int frame_number, bool readonly)
 {
   // TODO: COMPLÉTER CETTE FONCTION.
-  //empty entries
+  //If there are empty entries
   if(filled_tlb_entries < TLB_NUM_ENTRIES){
 	  tlb_entries[filled_tlb_entries].frame_number = frame_number;
       tlb_entries[filled_tlb_entries].page_number = page_number;
       tlb_entries[filled_tlb_entries].readonly = readonly;
+      tlb_entries[filled_tlb_entries].referenced = true;
       filled_tlb_entries++;
       return;
   }
@@ -91,16 +92,25 @@ static void tlb__add_entry (unsigned int page_number,
  
   while(true){
     
-    if(!tlb_entries[hand].referenced){
+    if(tlb_entries[hand].referenced == 0){
        //no reference, swap!
        
        tlb_entries[hand].frame_number = frame_number;
        tlb_entries[hand].page_number = page_number;
        tlb_entries[hand].readonly = readonly;
+       tlb_entries[hand].referenced = true;
+       
+       //setting the hand to its new position
+       hand++;
+    
+       //end of queue
+       if(hand == TLB_NUM_ENTRIES){
+            hand = 0;
+       }
        return; 
     }else{
-       //set reference bit to 0
-       tlb_entries[hand].referenced = false; 
+       //flip reference bit
+       tlb_entries[hand].referenced = false;
     }        
   }
         

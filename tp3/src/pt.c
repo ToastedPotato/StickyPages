@@ -64,6 +64,10 @@ void pt_unset_entry (unsigned int page_number)
   page_table[page_number].valid = false;
 }
 
+unsigned int pt_get_frame (unsigned int page_number){
+    return page_table[page_number].frame_number;
+}
+
 void pt_unset_ref (unsigned int page_number)
 {
   page_table[page_number].referenced = false;

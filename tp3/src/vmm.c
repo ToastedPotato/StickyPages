@@ -137,20 +137,26 @@ int lookup_frame_number(unsigned int page_number, bool write) {
 	        	    
 	        if(!page_found){pt_hand++;}
             
-            //en of queue
+            //end of queue
             if(pt_hand == NUM_PAGES){
                 pt_hand = 0;
             }
 	      
 	      }
 	      
-	      frame_number = pt_lookup(pt_hand);
+	      frame_number = pt_get_frame(pt_hand);
 	      
 	      // Check if frame needs to be written
 	      if(!pt_readonly_p(pt_hand) && pt_isValid(pt_hand)){
 	        //if yes, backup to disk then set victim page as invalid
 	        pm_backup_page (frame_number, pt_hand);
 	        pt_unset_entry (pt_hand);  
+          }
+          
+          //setting hand to the next position
+          pt_hand++;
+          if(pt_hand == NUM_PAGES){
+                pt_hand = 0;
           }
 	  
 	  }
@@ -160,8 +166,6 @@ int lookup_frame_number(unsigned int page_number, bool write) {
 	  pt_set_entry (page_number, frame_number);
 	  pt_set_readonly (page_number, !write);
 	  
-	  //setting the hand's new position
-	  pt_hand = page_number;
 	}
 	
 	// Add to TLB - read only or not??
