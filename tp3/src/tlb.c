@@ -14,7 +14,7 @@ struct tlb_entry
   bool referenced : 1;
 };
 
-//utilisé pour clock
+//Needed for implementing CLOCK
 unsigned int hand = 0;
 unsigned int filled_tlb_entries = 0;
 
@@ -40,8 +40,7 @@ void tlb_init (FILE *log)
 static int tlb__lookup (unsigned int page_number, bool write)
 {
   // TODO: COMPLÉTER CETTE FONCTION.
-  //pour l'instant une boucle bête qui lit le tlb en entier jusqu'à tomber sur
-  //l'entrée voulue
+  //Reads the TLB starting from the CLOCK "hand" until it checks all the entry
   bool end_Queue = false;
   
   int i = hand;
@@ -70,7 +69,6 @@ static int tlb__lookup (unsigned int page_number, bool write)
     if(visited == TLB_NUM_ENTRIES){end_Queue = true;}
     
   }
-  //fprintf(stdout, "visited: %i\n", visited);
   return -1;
 }
 
@@ -80,7 +78,7 @@ static void tlb__add_entry (unsigned int page_number,
                             unsigned int frame_number, bool readonly)
 {
   // TODO: COMPLÉTER CETTE FONCTION.
-  //Si entrées vides
+  //empty entries
   if(filled_tlb_entries < TLB_NUM_ENTRIES){
 	  tlb_entries[filled_tlb_entries].frame_number = frame_number;
       tlb_entries[filled_tlb_entries].page_number = page_number;
@@ -90,42 +88,27 @@ static void tlb__add_entry (unsigned int page_number,
   }
   
   //CLOCK!!
-  bool end_Queue = false;
-  
-  int i = hand;
-  
-  while(!end_Queue){
+ 
+  while(true){
     
-    if(tlb_entries[i].frame_number < 0){
-	  //si entrée vide
-	  
-	  hand = i;
-	  tlb_entries[i].frame_number = frame_number;
-      tlb_entries[i].page_number = page_number;
-      tlb_entries[i].readonly = readonly;
-      return;
-    }else {
-        if(!tlb_entries[i].referenced){
-           //si l'entrée n'a pas été référence, swap!
-           
-           hand = i;
-	       tlb_entries[i].frame_number = frame_number;
-           tlb_entries[i].page_number = page_number;
-           tlb_entries[i].readonly = readonly;
-           return; 
-        }else{
-           //sinon, en change le bit de référence
-           tlb_entries[i].referenced = false; 
-        }        
-    }
+    if(!tlb_entries[hand].referenced){
+       //no reference, swap!
+       
+       tlb_entries[hand].frame_number = frame_number;
+       tlb_entries[hand].page_number = page_number;
+       tlb_entries[hand].readonly = readonly;
+       return; 
+    }else{
+       //set reference bit to 0
+       tlb_entries[hand].referenced = false; 
+    }        
+  }
         
-    i++;
+  hand++;
     
-    //une fois qu'on arrive à la fin de la queue
-    if(i == TLB_NUM_ENTRIES){
-        i = 0;
-    }
-    
+  //end of queue
+  if(hand == TLB_NUM_ENTRIES){
+        hand = 0;
   }
       
 }

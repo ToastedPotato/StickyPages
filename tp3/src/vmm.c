@@ -42,8 +42,8 @@ static void vmm_log_command (FILE *out, const char *command,
 		             char c) /* Caractère lu ou écrit.  */
 {
   if (out)
-    fprintf (out, "%s[%c]@%05d: p=%d, o=%d, f=%d pa=%d\n", command, c, laddress,
-	     page, offset, frame, paddress);
+    fprintf (out, "%s[%c]@%05d: p=%d, o=%d, f=%d pa=%d\n", command, c, 
+        laddress, page, offset, frame, paddress);
 }
 
 /* Effectue une lecture à l'adresse logique `laddress`.  */
@@ -70,7 +70,8 @@ char vmm_read (unsigned int laddress)
   fprintf(stdout, "phys address : %d, char : %c\n", physical_address, c);
   
   // TODO: Fournir les arguments manquants.
-  vmm_log_command (stdout, "READING", laddress, page_number, frame_number, offset, physical_address, c);
+  vmm_log_command (stdout, "READING", laddress, page_number, frame_number, 
+    offset, physical_address, c);
   return c;
 }
 
@@ -97,7 +98,8 @@ void vmm_write (unsigned int laddress, char c)
   fprintf(stdout, "phys address : %d, char : %c\n", physical_address, c);
   
   // TODO: Fournir les arguments manquants.
-  vmm_log_command (stdout, "WRITING", laddress, page_number, frame_number, offset, physical_address, c);
+  vmm_log_command (stdout, "WRITING", laddress, page_number, frame_number, 
+    offset, physical_address, c);
 }
 
 int lookup_frame_number(unsigned int page_number, bool write) {
@@ -118,41 +120,41 @@ int lookup_frame_number(unsigned int page_number, bool write) {
 	    filled_frames++;
 	  }else{
 	  
-	  //Time to find a victim page with CLOCK!
-	  bool page_found = false;
-	  	  
-	  while(!page_found){
-	    
-	    if(pt_isValid(pt_hand)){
-            if(!pt_isReferenced(pt_hand)){
-                //page non référencée, on peut swap out
-                page_found = true;
-            }else{
-                pt_unset_ref(pt_hand);
+	      //Time to find a victim page with CLOCK!
+	      bool page_found = false;
+	      	  
+	      while(!page_found){
+	        
+	        if(pt_isValid(pt_hand)){
+                if(!pt_isReferenced(pt_hand)){
+                    //no reference, victim!
+                    page_found = true;
+                }else{
+                    pt_unset_ref(pt_hand);
+                }
+            
+	        }
+	        	    
+	        if(!page_found){pt_hand++;}
+            
+            //en of queue
+            if(pt_hand == NUM_PAGES){
+                pt_hand = 0;
             }
-        
-	    }
-	    	    
-	    if(!page_found){pt_hand++;}
-        
-        //une fois qu'on arrive à la fin de la queue
-        if(pt_hand == NUM_PAGES){
-            pt_hand = 0;
-        }
+	      
+	      }
+	      
+	      frame_number = pt_lookup(pt_hand);
+	      
+	      // Check if frame needs to be written
+	      if(!pt_readonly_p(pt_hand) && pt_isValid(pt_hand)){
+	        //if yes, backup to disk then set victim page as invalid
+	        pm_backup_page (frame_number, pt_hand);
+	        pt_unset_entry (pt_hand);  
+          }
 	  
 	  }
-	  
-	  frame_number = pt_lookup(pt_hand);
-	  
-	  }
-	  
-	  // Check if frame needs to be written
-	  if(!pt_readonly_p(pt_hand) && pt_isValid(pt_hand)){
-	    // if yes, backup to disk
-	    pm_backup_page (frame_number, pt_hand);
-	    pt_unset_entry (pt_hand);  
-      }
-	  
+	  	  
 	  // download page from backing store
 	  pm_download_page (page_number, frame_number);
 	  pt_set_entry (page_number, frame_number);
