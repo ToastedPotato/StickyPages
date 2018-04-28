@@ -92,7 +92,7 @@ static void tlb__add_entry (unsigned int page_number,
  
   while(true){
     
-    if(tlb_entries[hand].referenced == 0){
+    if(!tlb_entries[hand].referenced){
        //no reference, swap!
        
        tlb_entries[hand].frame_number = frame_number;
@@ -111,14 +111,15 @@ static void tlb__add_entry (unsigned int page_number,
     }else{
        //flip reference bit
        tlb_entries[hand].referenced = false;
-    }        
-  }
-        
-  hand++;
+    }
     
-  //end of queue
-  if(hand == TLB_NUM_ENTRIES){
-        hand = 0;
+    //next position
+    hand++;
+    
+    //end of queue
+    if(hand == TLB_NUM_ENTRIES){
+          hand = 0;
+    }        
   }
       
 }
