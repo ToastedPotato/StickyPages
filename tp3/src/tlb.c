@@ -52,7 +52,6 @@ static int tlb__lookup (unsigned int page_number, bool write)
 	  if(write) {
 		  tlb_entries[i].readonly = false;
 	  }
-	  hand = i;
 	  tlb_entries[i].referenced = true;
       return tlb_entries[i].frame_number;
     }
@@ -89,37 +88,37 @@ static void tlb__add_entry (unsigned int page_number,
   }
   
   //CLOCK!!
- 
+  bool iteration = false;
+  unsigned int visited = 0;
+  
   while(true){
-    
-    if(!tlb_entries[hand].referenced){
-       //no reference, swap!
-       
-       tlb_entries[hand].frame_number = frame_number;
-       tlb_entries[hand].page_number = page_number;
-       tlb_entries[hand].readonly = readonly;
-       tlb_entries[hand].referenced = true;
-       
-       //setting the hand to its new position
-       hand++;
-    
-       //end of queue
-       if(hand == TLB_NUM_ENTRIES){
-            hand = 0;
-       }
-       return; 
-    }else{
-       //flip reference bit
-       tlb_entries[hand].referenced = false;
+        
+    //looking for the best possible entry to swap out
+    if(!tlb_entries[hand].referenced && 
+        (tlb_entries[hand].readonly == iteration)){
+        //victim! (0,0/1,0 during the 1st/3rd pass, 0,1/1,1 during 2nd/4th pass)
+        tlb_entries[hand].frame_number = frame_number;
+        tlb_entries[hand].page_number = page_number;
+        tlb_entries[hand].readonly = readonly;
+        tlb_entries[hand].referenced = true;
+        
+        hand = (hand+1) & (TLB_NUM_ENTRIES - 1);
+
+        return;
+    }else if(iteration){
+        //no luck yet, set ref bit to 0
+        tlb_entries[hand].referenced = false;
     }
     
-    //next position
-    hand++;
     
-    //end of queue
-    if(hand == TLB_NUM_ENTRIES){
-          hand = 0;
-    }        
+    //next position, bitwise AND like a baws
+    hand = (hand+1) & (TLB_NUM_ENTRIES -1);
+    visited = (visited+1) & (TLB_NUM_ENTRIES -1);
+    //went through all entries with no luck
+    if(visited == 0){    
+        iteration = !iteration;
+    }
+            
   }
       
 }

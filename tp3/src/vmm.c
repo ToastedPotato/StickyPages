@@ -16,8 +16,17 @@ static unsigned int write_count = 0;
 static FILE* vmm_log;
 
 //Needed for implementing the clock policy
-unsigned int pt_hand = 0;
+unsigned int f_hand = 0;
 unsigned int filled_frames = 0;
+
+struct frame_ref
+{  
+  bool referenced : 1;
+  bool readonly : 1;
+  unsigned int page_number;
+};
+
+static struct frame_ref f_ref_table[NUM_FRAMES];
 
 // Helper functions
 int lookup_frame_number(unsigned int page_number, bool write);
@@ -60,8 +69,6 @@ char vmm_read (unsigned int laddress)
 
   int frame_number = lookup_frame_number(page_number, false);
   
-  pt_hand = page_number;
-  
   // TODO : translate logical to physical adress
   unsigned int physical_address = compute_paddress(frame_number, offset);
   
@@ -85,8 +92,6 @@ void vmm_write (unsigned int laddress, char c)
   unsigned int page_number = compute_page_number(laddress);
   unsigned int offset = compute_offset(laddress);
   fprintf(stdout, "page : %d, offset : %d\n", page_number, offset);
-
-  pt_hand = page_number;
   
   int frame_number = lookup_frame_number(page_number, true);
   
@@ -120,45 +125,48 @@ int lookup_frame_number(unsigned int page_number, bool write) {
 	    filled_frames++;
 	  }else{
 	  
-	      //Time to find a victim page with CLOCK!
+	      //Time to find a victim page/frame pair with CLOCK!
 	      bool page_found = false;
-	      	  
+      	  bool iteration = false;
+      	  unsigned int visited = 0;
+      	  
 	      while(!page_found){
-	        
-	        if(pt_isValid(pt_hand)){
-                if(!pt_isReferenced(pt_hand)){
-                    //no reference, victim!
+	        	        
+	        if(!iteration){
+	            //looking for (previously) unreferenced and unmodified pages
+	            if(!f_ref_table[f_hand].referenced && 
+	                !f_ref_table[f_hand].readonly){
+	                //best/3rd best victim! (0,0/1,0)
+	                frame_number = f_hand;
+	                pt_unset_entry (f_ref_table[frame_number].page_number);
+	                page_found = true;
+	            }        
+	        }else{
+	            //looking for (previously) unreferenced and modified pages
+	            if(!f_ref_table[f_hand].referenced && 
+	                f_ref_table[f_hand].readonly){
+	                //second best/worst victim (0,1/1,1)
+	                frame_number = f_hand;
+	                pm_backup_page (frame_number, 
+	                    f_ref_table[frame_number].page_number);
+                    pt_unset_entry (f_ref_table[frame_number].page_number);
                     page_found = true;
                 }else{
-                    pt_unset_ref(pt_hand);
+                    //no luck yet, set ref bit to 0
+                    f_ref_table[f_hand].referenced = false;
                 }
-            
 	        }
-	        	    
-	        if(!page_found){pt_hand++;}
-            
-            //end of queue
-            if(pt_hand == NUM_PAGES){
-                pt_hand = 0;
-            }
-	      
+	        //place hand at next position, also, modulo is for chickens   
+	        f_hand = (f_hand+1) & (NUM_FRAMES-1);	        
+	        
+	        visited = (visited+1) & (NUM_FRAMES-1);
+	        //went through all frames with no luck
+	        if(visited == 0){    
+	            iteration = !iteration;
+	        }
+	                    	      
 	      }
-	      
-	      frame_number = pt_get_frame(pt_hand);
-	      
-	      // Check if frame needs to be written
-	      if(!pt_readonly_p(pt_hand) && pt_isValid(pt_hand)){
-	        //if yes, backup to disk then set victim page as invalid
-	        pm_backup_page (frame_number, pt_hand);
-	        pt_unset_entry (pt_hand);  
-          }
-          
-          //setting hand to the next position
-          pt_hand++;
-          if(pt_hand == NUM_PAGES){
-                pt_hand = 0;
-          }
-	  
+	      	  
 	  }
 	  	  
 	  // download page from backing store
@@ -166,6 +174,11 @@ int lookup_frame_number(unsigned int page_number, bool write) {
 	  pt_set_entry (page_number, frame_number);
 	  pt_set_readonly (page_number, !write);
 	  
+	  //update frame ref table
+	  f_ref_table[frame_number].readonly = !write;
+  	  f_ref_table[frame_number].referenced = true;
+  	  f_ref_table[frame_number].page_number = page_number;
+  	  
 	}
 	
 	// Add to TLB - read only or not??
