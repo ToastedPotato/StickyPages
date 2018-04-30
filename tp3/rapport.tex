@@ -12,14 +12,14 @@
 \section{Introduction}
 \setlength{\parindent}{20pt}
 Pour ce travail pratique, nous avons dû simuler la gestion de la mémoire avec une table de pages, un \emph{Translation lookaside buffer} 
--que nous nommerons dorénavant TLB pour le reste de ce rapport-, une mémoire physique et une unité de gestion de mémoire virtuelle. Pour réaliser 
-cela, nous avons, toujours à partir du code fourni, implémenter les fonctions de base du TLB (la recherche et l'ajout d'entrées), de la page de 
-tables (la recherche et l'ajout d'entrées ainsi que le marquage des pages valides ou \emph{dirty}) et de la mémoire physique (le chargement et la 
-sauvegarde de pages sur le disque dur -émulé ici par un fichier contenant des caractères imprimables ASCII- ainsi que la lecture et écriture dans 
-les \emph{frames} de la mémoire physique), l'algorithme de remplacement utilisé par l'unité de gestion de mémoire virtuelle ainsi que divers 
-tests visant à évaluer la performance de ces fonctionnalités. La lecture et l'analyse des requêtes envoyées à l'unité de gestion de mémoire 
-virtuelle étant déjà traitées par les utilitaires fournis avec le code de base, le coeur du travail fut l'implémentation de l'algorithme de 
-remplacement de pages ainsi que l'élaboration des tests.\\
+-que nous nommerons dorénavant TLB pour le reste de ce rapport-, une mémoire physique et une unité de gestion de mémoire virtuelle. Pour 
+réaliser cela, nous avons, toujours à partir du code fourni, implémenter les fonctions de base du TLB (la recherche et l'ajout d'entrées), de la 
+page de tables (la recherche et l'ajout d'entrées ainsi que le marquage des pages valides ou \emph{dirty}) et de la mémoire physique (le 
+chargement et la sauvegarde de pages sur le disque dur -émulé ici par un fichier contenant des caractères imprimables ASCII- ainsi que 
+la lecture et écriture dans les \emph{frames} de la mémoire physique), l'algorithme de remplacement utilisé par l'unité de gestion de mémoire 
+virtuelle ainsi que divers tests visant à évaluer la performance de ces fonctionnalités. La lecture et l'analyse des requêtes envoyées à l'unité 
+de gestion de mémoire virtuelle étant déjà traitées par les utilitaires fournis avec le code de base, le coeur du travail fut l'implémentation 
+de l'algorithme de remplacement de pages ainsi que l'élaboration des tests.\\
 \\
 Le rapport qui suit verra plus particulièrement les deux tâches mentionnées plus haut en examinant différents algorithmes de remplacement de 
 pages et en expliquant la démarche derrière l'élaboration des tests utilisés.\\
@@ -34,8 +34,8 @@ sur demande), nos habilités et la complexité de certains algorithmes, nous avo
     \item [OPT] Optimal, permet de réduire au minimum les \emph{page faults} en remplaçant la page dont la prochaine référence se produira le 
     plus loin dans la queue de requêtes
     \item [FIFO] \emph{First In First Out}, remplace le contenu de la page la plus vielle
-    \item [CLOCK] Similaire à FIFO, mais, ne remplace une page que si le bit la marquant comme étant "référencée" est à 0. Si ce bit de référence 
-    est à 1, il sera mis à 0 et l'algorithme passera à la prochaine victime potentielle
+    \item [CLOCK] Similaire à FIFO, mais, ne remplace une page que si le bit la marquant comme étant "référencée" vaut 0. 
+    Si ce bit de référence vaut 1, il sera mis à 0 et l'algorithme passera à la prochaine victime potentielle
     \item [LRU] \emph{Least Recently Used}, remplace la page dont la dernière référence est la plus ancienne
     \item [Random] Comme le nom le dit, choisir aléatoirement une page à remplacer. Cette victime peut être le choix optimal comme elle pourrait 
     être le pire choix possible (par exemple, une page qui sera référencée très peu de temps après son remplacement), impossible de savoir.
@@ -46,8 +46,8 @@ requêtes de mémoire futures, ce qui est impossible (avec les technologies pré
 implémentés très facilement, mais leur performance laisse souvent à désirer. LRU peut s'approcher de OPT du point de vue de la performance, mais 
 le coût en ressources est plutôt élevé; en effet, il est souvent nécessaire d'utiliser des structures de données dispendieuses telles les listes 
 chainées afin de garder la trace des références à chaque page. Pour sa part, CLOCK se situe entre FIFO et LRU au niveau de la performance (peut 
-s'approcher de LRU dépendant de la situation) et requiert un coût minimal en ressources; les variantes les plus minimalistes ne demande qu'un bit 
-de plus pour chaque entrée de la table des page et un pointeur pour référencer la page sur laquelle se situe l'aiguille de "l'horloge".\\
+s'approcher de LRU dépendant de la situation) et requiert un coût minimal en ressources; les variantes les plus minimalistes ne demande qu'un 
+bit de plus pour chaque entrée de la table des page et un pointeur pour référencer la page sur laquelle se situe l'aiguille de "l'horloge".\\
 \\
 En évaluant le rapport performance/coût de chaque algorithme, nous avons donc décidé d'implémenter CLOCK, plus précisément la variante 
 \emph{enhanced second chance} qui prend aussi en compte le statut de modification de la page, car il était beaucoup plus abordable que LRU; en 
@@ -55,6 +55,11 @@ effet, pour notre implémentation, nous n'avions besoin que de surveiller une pa
 de garder en mémoire sur la pile deux entiers faisant référence à l'entrée où est rendue la boucle cherchant une victime à remplacer parmi les 
 entrées du TLB et les frames de la mémoire physique respectivement. En plus, le fait de prendre en compte le statut de modification de la page 
 permet de limiter les opération d'écriture sur le disque dur qui sont toujours particulièrement coûteuses.\\ 
+\\
+Il faut aussi mentionner que nous avons décidé d'ajouter une fonctionalité mettant à jour dans le \emph{backing store} les pages modifiées 
+contenues dans la mémoire physique. Cela n'était pas explicitement demandé dans la donnée, mais il est clair que, dans un contexte d'exécution 
+normal, le disque dur serait mis à jour avec les nouvelles données de la mémoire physique une fois toutes les tâches terminées sinon tout le 
+travail effectué par le ou les processus venant de terminer serait perdu.\\
 \\
 \section{Élaboration des tests}
 \setlength{\parindent}{20pt}
@@ -74,13 +79,13 @@ constituer chacun la moitié des requêtes.\\
 \\
 Le premier fichier de test, command1.in, vise à tester l’efficacité du TLB. Pour éviter que l’algorithme de remplacement de page n’interfère 
 avec ce test, nous avons gardé le nombre total de pages accédées sous 32 (nombre total des frames en mémoire physique). Ce test est composé de 
-deux \emph{working-set} de 16 pages chacun (pages 0-15 et 12-27), avec un chevauchement de 4 pages communes. Chaque \emph{working-set} est 
-composé de 30 requêtes.\\ 
+deux \emph{working-set} de 14 pages chacun (situées dans les intervalles 0-15 et 12-27), avec un chevauchement de 4 pages communes. Chaque 
+\emph{working-set} est composé de 30 requêtes.\\ 
 \\
 Le deuxième test, command2.in, vise à tester l’efficacité du remplacement des frames dans la mémoire physique, en plus du TLB. Ce test utilise 
-donc la quasi-totalité de l’adressage logique. Pour éviter que le test ne soit trop long, nous avons défini des \emph{working-set} avec un nombre 
-de pages plus élevé, bien que ce changement engendre évidement une baisse de l’efficacité du TLB. Le test est composé de 3 \emph{working-set} de 
-20 pages chaque (pages 0-19, 20-39 et 40-59), sans chevauchement, et 30 requêtes chaque. \\
+donc la quasi-totalité de l’adressage logique. Pour éviter que le test ne soit trop long, nous avons défini des \emph{working-set} avec un 
+nombre de pages plus élevé, bien que ce changement engendre évidement une baisse de l’efficacité du TLB. Le test est composé de 3 
+\emph{working-set} de 20 pages chaque (pages 0-19, 20-39 et 40-59), sans chevauchement, et 30 requêtes chaque. \\
 \\
 Ultimement, il est difficile de tirer des conclusions quant à l’efficacité réelle de l’implémentation de notre TLB et du remplacement de frames 
 puisque qu’elle dépend de plusieurs facteurs inconnus tels que le nombre de pages utilisés dans un intervalle de temps donné et le taux de 
