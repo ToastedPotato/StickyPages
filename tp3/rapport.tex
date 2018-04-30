@@ -65,22 +65,22 @@ Lors de notre premier essai d’élaboration de tests, nous sommes allés pour u
  aléatoires pour générer une liste d’adresses réparties également sur tout l’espace d’adressage logique. Cependant, cette méthode ne permettait 
  pas de bien représenter l’avantage de CLOCK sur un algorithme comme Random. 
 \\
-Pour notre deuxième essai, nous avons décidé de structurer nos tests comme plusieurs \epmh{working-set} se succédant dans le temps, ce qui est nous 
+Pour notre deuxième essai, nous avons décidé de structurer nos tests comme plusieurs \emph{working-set} se succédant dans le temps, ce qui est nous 
 semble plus proche de l’utilisation qu’un système d’exploitation pourrait faire d’une mémoire virtuelle. Ceci permet également de mieux démontrer 
 les avantages de l’algorithme CLOCK versus un l’algorithme purement aléatoire ou FIFO, puisque les pages accédées récemment prendront plus de 
-temps à être remplacée lors de la transition d’un \epmh{working-set} à un autre (et une page commune aux deux \epmh{working-set} ne sera pas remplacée).
+temps à être remplacée lors de la transition d’un \emph{working-set} à un autre (et une page commune aux deux \emph{working-set} ne sera pas remplacée).
 \\
-Par soucis de simplicité, les \epmh{working-set} ont été défini comme un ensemble de pages contiguës en mémoire, permettant la génération aléatoire 
+Par soucis de simplicité, les \emph{working-set} ont été défini comme un ensemble de pages contiguës en mémoire, permettant la génération aléatoire 
 d’adresses dans l’intervalle des adresses logiques de ces pages. Les read-write ont été distribués aléatoirement, pour constituer chacun la 
 moitié des requêtes.    
 \\
 Le premier fichier de test, command1.in, vise à tester l’efficacité du TLB. Pour éviter que l’algorithme de remplacement de page n’interfère 
 avec ce test, nous avons gardé le nombre total de pages accédées sous 32 (nombre total des frames en mémoire physique). Ce test est composé de 
-deux \epmh{working-set} de 16 pages chacun (pages 0-15 et 12-27), avec un chevauchement de 4 pages communes. Chaque \epmh{working-set} est composé de 30 requêtes. 
+deux \emph{working-set} de 16 pages chacun (pages 0-15 et 12-27), avec un chevauchement de 4 pages communes. Chaque \emph{working-set} est composé de 30 requêtes. 
 \\
 Le deuxième test, command2.in, vise à tester l’efficacité du remplacement des frames dans la mémoire physique, en plus du TLB. Ce test utilise 
-donc la quasi-totalité de l’adressage logique. Pour éviter que le test ne soit trop long, nous avons défini des \epmh{working-set} avec un nombre de 
-pages plus élevé, bien que ce changement engendre évidement une baisse de l’efficacité du TLB. Le test est composé de 3 \epmh{working-set} de 20 pages
+donc la quasi-totalité de l’adressage logique. Pour éviter que le test ne soit trop long, nous avons défini des \emph{working-set} avec un nombre de 
+pages plus élevé, bien que ce changement engendre évidement une baisse de l’efficacité du TLB. Le test est composé de 3 \emph{working-set} de 20 pages
  chaque (pages 0-19, 20-39 et 40-59), sans chevauchement, et 30 requêtes chaque. 
 \\
 Ultimement, il est difficile de tirer des conclusions quant à l’efficacité réelle de l’implémentation de notre TLB et du remplacement de frames 
