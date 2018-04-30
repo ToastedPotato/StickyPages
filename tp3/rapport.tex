@@ -85,7 +85,7 @@ deux \emph{working-set} de 14 pages chacun (situées dans les intervalles 0-15 e
 Le deuxième test, command2.in, vise à tester l’efficacité du remplacement des frames dans la mémoire physique, en plus du TLB. Ce test utilise 
 donc la quasi-totalité de l’adressage logique. Pour éviter que le test ne soit trop long, nous avons défini des \emph{working-set} avec un 
 nombre de pages plus élevé, bien que ce changement engendre évidement une baisse de l’efficacité du TLB. Le test est composé de 3 
-\emph{working-set} de 20 pages chaque (pages 0-19, 20-39 et 40-59), sans chevauchement, et 30 requêtes chaque. \\
+\emph{working-set} de 17 pages chaque (dans les intervalles 0-19, 20-39 et 40-59), sans chevauchement, et 30 requêtes chaque. \\
 \\
 Ultimement, il est difficile de tirer des conclusions quant à l’efficacité réelle de l’implémentation de notre TLB et du remplacement de frames 
 puisque qu’elle dépend de plusieurs facteurs inconnus tels que le nombre de pages utilisés dans un intervalle de temps donné et le taux de 
