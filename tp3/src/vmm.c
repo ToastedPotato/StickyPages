@@ -111,9 +111,9 @@ int lookup_frame_number(unsigned int page_number, bool write) {
   // Lookup TLB
   int frame_number = tlb_lookup (page_number, write);
   
-  // if TLB hit, read from central memory
+  // if TLB miss, lookup page table
   if(frame_number < 0) {
-	// if TLB miss, lookup page table
+
 	frame_number = pt_lookup (page_number);
 	
 	if(frame_number < 0) {

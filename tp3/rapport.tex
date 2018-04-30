@@ -17,7 +17,7 @@ cela, nous avons, toujours à partir du code fourni, implémenter les fonctions 
 tables (la recherche et l'ajout d'entrées ainsi que le marquage des pages valides ou \emph{dirty}) et de la mémoire physique (le chargement et la 
 sauvegarde de pages sur le disque dur -émulé ici par un fichier contenant des caractères imprimables ASCII- ainsi que la lecture et écriture dans 
 les \emph{frames} de la mémoire physique), l'algorithme de remplacement utilisé par l'unité de gestion de mémoire virtuelle ainsi que divers 
-tests visant à évaluer la performance de ces fonctionalités. La lecture et l'analyse des requêtes envoyées à l'unité de gestion de mémoire 
+tests visant à évaluer la performance de ces fonctionnalités. La lecture et l'analyse des requêtes envoyées à l'unité de gestion de mémoire 
 virtuelle étant déjà traitées par les utilitaires fournis avec le code de base, le coeur du travail fut l'implémentation de l'algorithme de 
 remplacement de pages ainsi que l'élaboration des tests.\\
 \\
@@ -28,7 +28,7 @@ pages et en expliquant la démarche derrière l'élaboration des tests utilisés
 \setlength{\parindent}{20pt}
 Il existe plusieurs stratégies pour gérer le remplacement de pages, certaines pouvant permettre une gestion presque optimale des 
 \emph{page faults} et ainsi réduire leur fréquence à un minimum. Étant donné le cadre du travail (nous sommes obligés d'utiliser la pagination 
-sur demande), nos habilités et la complexité de certains algorithmes, nous avons décidé de choisir parmis les algorithmes suivants pour gérer les 
+sur demande), nos habilités et la complexité de certains algorithmes, nous avons décidé de choisir parmi les algorithmes suivants pour gérer les 
 \emph{TLB-miss} et les \emph{page faults}:\\
 \begin{description}
     \item [OPT] Optimal, permet de réduire au minimum les \emph{page faults} en remplaçant la page dont la prochaine référence se produira le 
@@ -46,20 +46,55 @@ requêtes de mémoire futures, ce qui est impossible (avec les technologies pré
 implémentés très facilement, mais leur performance laisse souvent à désirer. LRU peut s'approcher de OPT du point de vue de la performance, mais 
 le coût en ressources est plutôt élevé; en effet, il est souvent nécessaire d'utiliser des structures de données dispendieuses telles les listes 
 chainées afin de garder la trace des références à chaque page. Pour sa part, CLOCK se situe entre FIFO et LRU au niveau de la performance (peut 
-s'approcher de LRU dépendant de la situation) et requièrt un coût minimal en ressources; les variantes les plus minimalistes ne demande qu'un bit 
+s'approcher de LRU dépendant de la situation) et requiert un coût minimal en ressources; les variantes les plus minimalistes ne demande qu'un bit 
 de plus pour chaque entrée de la table des page et un pointeur pour référencer la page sur laquelle se situe l'aiguille de "l'horloge".\\
 \\
 En évaluant le rapport performance/coût de chaque algorithme, nous avons donc décidé d'implémenter CLOCK, plus précisément la variante 
 \emph{enhanced second chance} qui prend aussi en compte le statut de modification de la page, car il était beaucoup plus abordable que LRU; en 
 effet, pour notre implémentation, nous n'avions besoin que de surveiller une paire de bits indiquant si la page a été référencée ou modifiée et 
-de garder en mémoire sur la pile deux entiers faisant référence à l'entrée où est rendue la boucle cherchant une victime à remplacer parmis les 
+de garder en mémoire sur la pile deux entiers faisant référence à l'entrée où est rendue la boucle cherchant une victime à remplacer parmi les 
 entrées du TLB et les frames de la mémoire physique respectivement. En plus, le fait de prendre en compte le statut de modification de la page 
 permet de limiter les opération d'écriture sur le disque dur qui sont toujours particulièrement coûteuses.\\ 
 \\
 \section{Élaboration des tests}
 \setlength{\parindent}{20pt}
-
+Notre choix de l’algorithme CLOCK \emph{enhanced second chance}, comme vu dans la section précédente, se base sur l’hypothèse que toutes les pages ne sont pas
+ accédées en mémoire avec la même fréquence, et qu’une page accédée récemment a plus de chance d’être accédée à nouveau. 
+\\
+Lors de notre premier essai d’élaboration de tests, nous sommes allés pour une approche purement aléatoire, utilisant un générateur de nombres
+ aléatoires pour générer une liste d’adresses réparties également sur tout l’espace d’adressage logique. Cependant, cette méthode ne permettait 
+ pas de bien représenter l’avantage de CLOCK sur un algorithme comme Random. 
+\\
+Pour notre deuxième essai, nous avons décidé de structurer nos tests comme plusieurs \epmh{working-set} se succédant dans le temps, ce qui est nous 
+semble plus proche de l’utilisation qu’un système d’exploitation pourrait faire d’une mémoire virtuelle. Ceci permet également de mieux démontrer 
+les avantages de l’algorithme CLOCK versus un l’algorithme purement aléatoire ou FIFO, puisque les pages accédées récemment prendront plus de 
+temps à être remplacée lors de la transition d’un \epmh{working-set} à un autre (et une page commune aux deux \epmh{working-set} ne sera pas remplacée).
+\\
+Par soucis de simplicité, les \epmh{working-set} ont été défini comme un ensemble de pages contiguës en mémoire, permettant la génération aléatoire 
+d’adresses dans l’intervalle des adresses logiques de ces pages. Les read-write ont été distribués aléatoirement, pour constituer chacun la 
+moitié des requêtes.    
+\\
+Le premier fichier de test, command1.in, vise à tester l’efficacité du TLB. Pour éviter que l’algorithme de remplacement de page n’interfère 
+avec ce test, nous avons gardé le nombre total de pages accédées sous 32 (nombre total des frames en mémoire physique). Ce test est composé de 
+deux \epmh{working-set} de 16 pages chacun (pages 0-15 et 12-27), avec un chevauchement de 4 pages communes. Chaque \epmh{working-set} est composé de 30 requêtes. 
+\\
+Le deuxième test, command2.in, vise à tester l’efficacité du remplacement des frames dans la mémoire physique, en plus du TLB. Ce test utilise 
+donc la quasi-totalité de l’adressage logique. Pour éviter que le test ne soit trop long, nous avons défini des \epmh{working-set} avec un nombre de 
+pages plus élevé, bien que ce changement engendre évidement une baisse de l’efficacité du TLB. Le test est composé de 3 \epmh{working-set} de 20 pages
+ chaque (pages 0-19, 20-39 et 40-59), sans chevauchement, et 30 requêtes chaque. 
+\\
+Ultimement, il est difficile de tirer des conclusions quant à l’efficacité réelle de l’implémentation de notre TLB et du remplacement de frames 
+puisque qu’elle dépend de plusieurs facteurs inconnus tels que le nombre de pages utilisés dans un intervalle de temps donné et le taux de  \emph{page faults}
+ toléré. Nous pensons cependant que cette implémentation offre un ratio d’efficacité pour coût d’implémentation intéressant dans un contexte 
+d’utilisation tel que décrit plus haut. Malheureusement, ces tests ne permettent pas d’évaluer les gains des d’écriture en mémoire évité grâce à
+ notre implémentation de CLOCK \emph{enhanced}.
+ \\
 \section{Conclusion}
+En conclusion, ce travail s’est révélé plus facile que les précédents grâce aux connaissances acquises quant au fonctionnement des systèmes
+ d’exploitation et à la programmation en C tout au long de la session. Il nous a cependant mis au défi de réfléchir et d’évaluer les répercussions 
+ concrètes du choix des algorithmes de remplacement dans le contexte d’utilisation d’une mémoire virtuelle.
+ 
+
 \setlength{\parindent}{20pt}
 
 \end{document}
