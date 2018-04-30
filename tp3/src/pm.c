@@ -5,6 +5,9 @@
 #include "conf.h"
 #include "pm.h"
 
+//used for updating the backing store at the very end of the execution
+int dirty_ref[NUM_FRAMES];
+
 static FILE *pm_backing_store;
 static FILE *pm_log;
 static char pm_memory[PHYSICAL_MEMORY_SIZE];
@@ -62,9 +65,22 @@ void pm_write (unsigned int physical_address, char c)
   }
 }
 
+//Met à jour la table de pages dirty dans les frames pour le backup final
+void pm_dirty_update (unsigned int frame_number, int page_number){
+    //valid page number if dirty, -1 otherwise
+    dirty_ref[frame_number] = page_number; 
+}
 
 void pm_clean (void)
 {
+  // Enregistrement des données de la mémoire physique dans le backing store
+  // à la fin de l'exécution
+  for(int i = 0; i < NUM_FRAMES; i++){
+    if(dirty_ref[i] != -1){
+        pm_backup_page (i, dirty_ref[i]);
+    }
+    
+  }
   // Enregistre l'état de la mémoire physique.
   if (pm_log)
     {

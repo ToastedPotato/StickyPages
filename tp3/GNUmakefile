@@ -38,5 +38,5 @@ clean:
 	pdflatex $<
 
 release:
-	gtar -czv -f tp3.tar.gz --transform 's|^|tp3/|' \
+	tar -czv -f tp3.tar.gz --transform 's|^|tp3/|' \
 	    src *.tex *.pdf tests GNUmakefile

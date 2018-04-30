@@ -179,6 +179,12 @@ int lookup_frame_number(unsigned int page_number, bool write) {
   	  f_ref_table[frame_number].referenced = true;
   	  f_ref_table[frame_number].page_number = page_number;
   	  
+  	  //update dirty page ref table
+  	  if(write){
+  	    pm_dirty_update (frame_number, page_number);
+      }else{
+        pm_dirty_update (frame_number, -1);
+      }
 	}
 	
 	// Add to TLB - read only or not??
