@@ -67,8 +67,7 @@ Lors de notre premier essai d’élaboration de tests, nous sommes allés pour u
 Pour notre deuxième essai, nous avons décidé de structurer nos tests comme plusieurs \emph{working-set} se succédant dans le temps, ce qui est nous 
 semble plus proche de l’utilisation qu’un système d’exploitation pourrait faire d’une mémoire virtuelle. Ceci permet également de mieux démontrer 
 les avantages de l’algorithme CLOCK versus un l’algorithme purement aléatoire ou FIFO, puisque les pages accédées récemment prendront plus de 
-temps à être remplacée lors de la transition d’un \emph{working-set} à un autre (et une page commune aux deux \emph{working-set} ne sera pas remplacée).\\
-\\
+temps à être remplacée lors de la transition d’un \emph{working-set} à un autre (et une page commune aux deux \emph{working-set} ne sera pas remplacée).
 Par soucis de simplicité, les \emph{working-set} ont été défini comme un ensemble de pages contiguës en mémoire, permettant la génération aléatoire 
 d’adresses dans l’intervalle des adresses logiques de ces pages. Les read-write ont été distribués aléatoirement, pour constituer chacun la 
 moitié des requêtes.\\    
