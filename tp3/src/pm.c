@@ -77,7 +77,8 @@ void pm_clean (void)
   // à la fin de l'exécution
   for(int i = 0; i < NUM_FRAMES; i++){
     if(dirty_ref[i] != -1){
-        pm_backup_page (i, dirty_ref[i]);
+        fseek(pm_backing_store, dirty_ref[i]*256, SEEK_SET);
+        fwrite(pm_memory+(i*256), 256, 1, pm_backing_store);
     }
     
   }
